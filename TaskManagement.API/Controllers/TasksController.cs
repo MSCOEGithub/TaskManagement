@@ -5,8 +5,10 @@ using TaskManagement.API.Models;
 
 namespace TaskManagement.API.Controllers;
 
+/// <summary>CRUD operations for tasks.</summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class TasksController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -16,15 +18,19 @@ public class TasksController : ControllerBase
         _context = context;
     }
 
-    // GET: api/tasks
+    /// <summary>Get all tasks ordered by creation date (newest first).</summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<TaskItem>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasks()
     {
         return await _context.Tasks.OrderByDescending(t => t.CreatedAt).ToListAsync();
     }
 
-    // GET: api/tasks/5
+    /// <summary>Get a single task by ID.</summary>
+    /// <param name="id">The task ID.</param>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(TaskItem), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TaskItem>> GetTask(int id)
     {
         var task = await _context.Tasks.FindAsync(id);
@@ -33,8 +39,10 @@ public class TasksController : ControllerBase
         return task;
     }
 
-    // POST: api/tasks
+    /// <summary>Create a new task.</summary>
     [HttpPost]
+    [ProducesResponseType(typeof(TaskItem), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
     {
         task.CreatedAt = DateTime.UtcNow;
@@ -43,8 +51,12 @@ public class TasksController : ControllerBase
         return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
     }
 
-    // PUT: api/tasks/5
+    /// <summary>Update an existing task.</summary>
+    /// <param name="id">The task ID.</param>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTask(int id, TaskItem task)
     {
         if (id != task.Id)
@@ -66,8 +78,11 @@ public class TasksController : ControllerBase
         return NoContent();
     }
 
-    // PATCH: api/tasks/5/toggle
+    /// <summary>Toggle the completed state of a task.</summary>
+    /// <param name="id">The task ID.</param>
     [HttpPatch("{id:int}/toggle")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleComplete(int id)
     {
         var task = await _context.Tasks.FindAsync(id);
@@ -79,8 +94,11 @@ public class TasksController : ControllerBase
         return NoContent();
     }
 
-    // DELETE: api/tasks/5
+    /// <summary>Delete a task.</summary>
+    /// <param name="id">The task ID.</param>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTask(int id)
     {
         var task = await _context.Tasks.FindAsync(id);
