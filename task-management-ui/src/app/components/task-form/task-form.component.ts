@@ -26,34 +26,37 @@ export class TaskFormComponent implements OnInit {
     isCompleted: false,
     dueDate: undefined,
     assignedTo: undefined,
+    tags: [],
   };
 
   users: User[] = [];
   saving = false;
   error = '';
 
+  tagInput = '';
+  readonly presetTags = ['Bug', 'Feature', 'Design', 'Backend', 'Frontend', 'Review', 'Urgent', 'Research'];
+
   priorities = [
     {
       value: 'High' as const,
       label: 'High',
-      activeClass: BASE + 'border-rose-500 bg-rose-500/10 text-rose-400',
-      idleClass:   BASE + 'border-gray-700 bg-transparent text-gray-500 hover:border-rose-500/50 hover:text-rose-400',
+      activeClass: BASE + 'border-red-500 bg-red-50 text-red-600',
+      idleClass:   BASE + 'border-slate-200 bg-white text-slate-400 hover:border-red-400 hover:text-red-500',
     },
     {
       value: 'Medium' as const,
       label: 'Medium',
-      activeClass: BASE + 'border-amber-500 bg-amber-500/10 text-amber-400',
-      idleClass:   BASE + 'border-gray-700 bg-transparent text-gray-500 hover:border-amber-500/50 hover:text-amber-400',
+      activeClass: BASE + 'border-amber-500 bg-amber-50 text-amber-600',
+      idleClass:   BASE + 'border-slate-200 bg-white text-slate-400 hover:border-amber-400 hover:text-amber-500',
     },
     {
       value: 'Low' as const,
       label: 'Low',
-      activeClass: BASE + 'border-sky-500 bg-sky-500/10 text-sky-400',
-      idleClass:   BASE + 'border-gray-700 bg-transparent text-gray-500 hover:border-sky-500/50 hover:text-sky-400',
+      activeClass: BASE + 'border-emerald-500 bg-emerald-50 text-emerald-600',
+      idleClass:   BASE + 'border-slate-200 bg-white text-slate-400 hover:border-emerald-400 hover:text-emerald-500',
     },
   ];
 
-  /** Map user color name → Tailwind bg class */
   readonly avatarBg: Record<string, string> = {
     cyan:    'bg-cyan-500',
     emerald: 'bg-emerald-500',
@@ -73,11 +76,12 @@ export class TaskFormComponent implements OnInit {
         isCompleted: this.task.isCompleted,
         dueDate: this.task.dueDate ?? undefined,
         assignedTo: this.task.assignedTo ?? undefined,
+        tags: [...(this.task.tags ?? [])],
       };
     }
     this.taskService.getUsers().subscribe({
       next: (users) => { this.users = users; this.cdr.markForCheck(); },
-      error: () => { /* users list is non-critical */ },
+      error: () => {},
     });
   }
 
@@ -85,6 +89,37 @@ export class TaskFormComponent implements OnInit {
 
   getUser(id: string | undefined): User | undefined {
     return id ? this.users.find(u => u.id === id) : undefined;
+  }
+
+  isTagSelected(tag: string): boolean {
+    return (this.form.tags ?? []).includes(tag);
+  }
+
+  togglePresetTag(tag: string): void {
+    if (this.isTagSelected(tag)) {
+      this.form.tags = (this.form.tags ?? []).filter(t => t !== tag);
+    } else {
+      this.form.tags = [...(this.form.tags ?? []), tag];
+    }
+    this.cdr.markForCheck();
+  }
+
+  addTag(tag: string): void {
+    const t = tag.trim();
+    if (t && !(this.form.tags ?? []).includes(t)) {
+      this.form.tags = [...(this.form.tags ?? []), t];
+      this.cdr.markForCheck();
+    }
+    this.tagInput = '';
+  }
+
+  removeTag(tag: string): void {
+    this.form.tags = (this.form.tags ?? []).filter(t => t !== tag);
+    this.cdr.markForCheck();
+  }
+
+  onTagKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') { event.preventDefault(); this.addTag(this.tagInput); }
   }
 
   submit(): void {

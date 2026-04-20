@@ -1,110 +1,131 @@
-<!-- Backdrop -->
-<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-  (click)="cancel()">
+﻿<!-- BACKDROP -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
 
-  <!-- Panel -->
-  <div class="w-full max-w-lg rounded-2xl p-6 bg-gray-900 border border-gray-800 shadow-2xl"
-    (click)="$event.stopPropagation()">
+  <!-- PANEL -->
+  <div class="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden">
 
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h2 class="text-lg font-bold text-white">{{ isEdit ? 'Edit Task' : 'New Task' }}</h2>
-        <p class="text-xs text-gray-500 mt-0.5">{{ isEdit ? 'Update task details below.' : 'Fill in the details to create a task.' }}</p>
-      </div>
-      <button (click)="cancel()"
-        class="w-8 h-8 rounded-lg border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-500 hover:text-gray-300 flex items-center justify-center transition-all text-sm">
-        ✕
-      </button>
-    </div>
-
-    <!-- Error -->
-    <div *ngIf="error"
-      class="mb-4 px-4 py-2.5 rounded-xl bg-rose-500/5 border border-rose-500/20 text-rose-400 text-sm">
-      {{ error }}
+    <div class="px-6 pt-6 pb-4 border-b border-slate-100">
+      <h2 class="text-lg font-bold text-slate-900">{{ isEdit ? 'Edit Task' : 'New Task' }}</h2>
+      <p class="text-xs text-slate-400 mt-0.5">{{ isEdit ? 'Update the details below' : 'Fill in the details to create a task' }}</p>
     </div>
 
     <!-- Form -->
-    <form (ngSubmit)="submit()" class="flex flex-col gap-5">
+    <div class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
 
-      <div>
-        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Title <span class="text-rose-400 normal-case tracking-normal font-normal">*</span></label>
-        <input [(ngModel)]="form.title" name="title" required
-          placeholder="What needs to be done?"
-          class="w-full bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"/>
+      <!-- Error -->
+      <div *ngIf="error" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 rounded-lg px-3 py-2 text-sm">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        {{ error }}
       </div>
 
+      <!-- Title -->
       <div>
-        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Description</label>
-        <textarea [(ngModel)]="form.description" name="description" rows="3"
-          placeholder="Add more details…"
-          class="w-full bg-gray-800 border border-gray-700 text-gray-100 placeholder-gray-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all resize-none">
-        </textarea>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Title <span class="text-red-400">*</span></label>
+        <input [(ngModel)]="form.title" placeholder="What needs to be done?" maxlength="120"
+          class="w-full bg-white border border-slate-200 text-slate-900 placeholder-slate-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all"/>
       </div>
 
+      <!-- Description -->
       <div>
-        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Priority</label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Description</label>
+        <textarea [(ngModel)]="form.description" placeholder="Add more context (optional)..." rows="2" maxlength="500"
+          class="w-full bg-white border border-slate-200 text-slate-900 placeholder-slate-400 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all resize-none"></textarea>
+      </div>
+
+      <!-- Priority -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Priority</label>
         <div class="grid grid-cols-3 gap-2">
-          <button *ngFor="let p of priorities" type="button"
-            (click)="form.priority = p.value"
+          <button *ngFor="let p of priorities" type="button" (click)="form.priority = p.value"
             [ngClass]="form.priority === p.value ? p.activeClass : p.idleClass">
             {{ p.label }}
           </button>
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Due Date</label>
-        <input [(ngModel)]="form.dueDate" name="dueDate" type="date"
-          class="w-full bg-gray-800 border border-gray-700 text-gray-400 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"/>
-      </div>
-
-      <!-- Assignee -->
-      <div>
-        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Assign To</label>
-        <div class="grid grid-cols-3 gap-2">
-          <!-- Unassigned option -->
-          <button type="button" (click)="form.assignedTo = undefined"
-            [ngClass]="!form.assignedTo
-              ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-              : 'border-gray-700 bg-transparent text-gray-500 hover:border-gray-600 hover:text-gray-400'"
-            class="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all duration-150">
-            <span class="w-6 h-6 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center text-gray-500 text-xs shrink-0">—</span>
-            <span class="truncate">Unassigned</span>
-          </button>
-          <!-- User options -->
-          <button *ngFor="let u of users" type="button" (click)="form.assignedTo = u.id"
-            [ngClass]="form.assignedTo === u.id
-              ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-              : 'border-gray-700 bg-transparent text-gray-500 hover:border-gray-600 hover:text-gray-300'"
-            class="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all duration-150">
-            <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-              [ngClass]="avatarBg[u.color] ?? 'bg-gray-500'">{{ u.initials }}</span>
-            <span class="truncate">{{ u.name.split(' ')[0] }}</span>
-          </button>
+      <!-- Due Date + Assignee -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Due Date</label>
+          <input type="date" [(ngModel)]="form.dueDate"
+            class="w-full bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Assignee</label>
+          <select [(ngModel)]="form.assignedTo"
+            class="w-full bg-white border border-slate-200 text-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all">
+            <option [value]="undefined">Unassigned</option>
+            <option *ngFor="let u of users" [value]="u.id">{{ u.name }}</option>
+          </select>
         </div>
       </div>
 
-      <label *ngIf="isEdit" class="flex items-center gap-3 cursor-pointer select-none py-1">
-        <div class="relative">
-          <input [(ngModel)]="form.isCompleted" name="isCompleted" type="checkbox" class="sr-only peer"/>
-          <div class="w-9 h-5 rounded-full bg-gray-700 peer-checked:bg-emerald-500 transition-colors"></div>
-          <div class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4"></div>
-        </div>
-        <span class="text-sm text-gray-300">Mark as completed</span>
-      </label>
+      <!-- Tags -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Tags / Labels</label>
 
-      <div class="flex gap-3 pt-1">
-        <button type="button" (click)="cancel()"
-          class="flex-1 py-2.5 rounded-xl border border-gray-700 bg-gray-800 text-gray-400 font-medium text-sm hover:bg-gray-700 hover:text-gray-200 transition-all">
-          Cancel
-        </button>
-        <button type="submit" [disabled]="saving"
-          class="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20 transition-all active:scale-95">
-          <span *ngIf="saving">Saving…</span>
-          <span *ngIf="!saving">{{ isEdit ? 'Save Changes' : 'Create Task' }}</span>
+        <!-- Preset chips -->
+        <div class="flex flex-wrap gap-1.5 mb-2">
+          <button *ngFor="let tag of presetTags" type="button" (click)="togglePresetTag(tag)"
+            class="text-xs px-2.5 py-1 rounded-lg border font-medium transition-all"
+            [ngClass]="isTagSelected(tag)
+              ? 'bg-blue-50 text-blue-600 border-blue-300'
+              : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700'">
+            {{ tag }}
+          </button>
+        </div>
+
+        <!-- Custom tag input -->
+        <div class="flex gap-2">
+          <input [(ngModel)]="tagInput" (keydown)="onTagKeydown()" placeholder="Custom tag, press Enter to add..."
+            class="flex-1 bg-white border border-slate-200 text-slate-700 placeholder-slate-400 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition-all"/>
+          <button type="button" (click)="addTag(tagInput)"
+            class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium transition-colors">
+            Add
+          </button>
+        </div>
+
+        <!-- Selected tags -->
+        <div *ngIf="form.tags?.length" class="flex flex-wrap gap-1.5 mt-2">
+          <span *ngFor="let tag of form.tags"
+            class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 font-medium">
+            {{ tag }}
+            <button type="button" (click)="removeTag(tag)" class="text-blue-400 hover:text-blue-700 leading-none font-bold ml-0.5">&#x2715;</button>
+          </span>
+        </div>
+      </div>
+
+      <!-- Completed toggle (edit only) -->
+      <div *ngIf="isEdit" class="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-3 border border-slate-200">
+        <span class="text-sm font-medium text-slate-700">Mark as completed</span>
+        <button type="button" (click)="form.isCompleted = !form.isCompleted"
+          class="relative w-10 h-5 rounded-full transition-colors duration-200 focus:outline-none"
+          [ngClass]="form.isCompleted ? 'bg-emerald-500' : 'bg-slate-300'">
+          <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
+            [ngClass]="form.isCompleted ? 'translate-x-5' : 'translate-x-0'"></span>
         </button>
       </div>
-    </form>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50/60">
+      <button type="button" (click)="cancel()"
+        class="px-4 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:bg-slate-50 hover:border-slate-300 transition-all">
+        Cancel
+      </button>
+      <button type="button" (click)="submit()" [disabled]="saving"
+        class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold text-sm transition-all shadow-sm shadow-blue-200 active:scale-95">
+        <svg *ngIf="saving" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        {{ saving ? 'Saving...' : (isEdit ? 'Save Changes' : 'Create Task') }}
+      </button>
+    </div>
+
   </div>
 </div>

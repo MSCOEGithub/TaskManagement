@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+﻿import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Task, User } from '../../models/task.model';
@@ -24,9 +24,14 @@ export class TaskListComponent implements OnInit {
   filterStatus: 'all' | 'active' | 'done' = 'all';
   filterPriority: 'all' | 'High' | 'Medium' | 'Low' = 'all';
   filterAssignee = 'all';
+  filterTag = 'all';
+  sortBy: 'created' | 'dueDate' | 'priority' | 'title' = 'created';
+  sortDir: 'asc' | 'desc' = 'desc';
 
   showForm = false;
   editingTask: Task | null = null;
+
+  readonly PRIORITY_RANK: Record<string, number> = { High: 3, Medium: 2, Low: 1 };
 
   statusOptions = [
     { label: 'All',    value: 'all'    as const },
@@ -40,7 +45,7 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
     this.taskService.getUsers().subscribe({
       next: (users) => { this.users = users; this.cdr.markForCheck(); },
-      error: () => { /* non-critical */ },
+      error: () => {},
     });
   }
 
@@ -52,11 +57,19 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  /** All unique tags across all tasks */
+  get allTags(): string[] {
+    const set = new Set<string>();
+    this.tasks.forEach(t => (t.tags ?? []).forEach(tag => set.add(tag)));
+    return Array.from(set).sort();
+  }
+
   applyFilters(): void {
-    this.filteredTasks = this.tasks.filter(t => {
+    let list = this.tasks.filter(t => {
       const matchSearch = !this.searchQuery ||
         t.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        (t.description?.toLowerCase().includes(this.searchQuery.toLowerCase()) ?? false);
+        (t.description?.toLowerCase().includes(this.searchQuery.toLowerCase()) ?? false) ||
+        (t.tags ?? []).some(tag => tag.toLowerCase().includes(this.searchQuery.toLowerCase()));
       const matchStatus =
         this.filterStatus === 'all' ||
         (this.filterStatus === 'active' && !t.isCompleted) ||
@@ -64,18 +77,49 @@ export class TaskListComponent implements OnInit {
       const matchPriority = this.filterPriority === 'all' || t.priority === this.filterPriority;
       const matchAssignee = this.filterAssignee === 'all' ||
         (this.filterAssignee === 'unassigned' ? !t.assignedTo : t.assignedTo === this.filterAssignee);
-      return matchSearch && matchStatus && matchPriority && matchAssignee;
+      const matchTag = this.filterTag === 'all' || (t.tags ?? []).includes(this.filterTag);
+      return matchSearch && matchStatus && matchPriority && matchAssignee && matchTag;
     });
+
+    // Sort
+    list = [...list].sort((a, b) => {
+      let cmp = 0;
+      if (this.sortBy === 'title')    cmp = a.title.localeCompare(b.title);
+      if (this.sortBy === 'priority') cmp = (this.PRIORITY_RANK[a.priority] ?? 0) - (this.PRIORITY_RANK[b.priority] ?? 0);
+      if (this.sortBy === 'dueDate')  cmp = (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999');
+      if (this.sortBy === 'created')  cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return this.sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    this.filteredTasks = list;
+  }
+
+  toggleSort(col: typeof this.sortBy): void {
+    if (this.sortBy === col) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = col;
+      this.sortDir = col === 'created' ? 'desc' : 'asc';
+    }
+    this.applyFilters();
+    this.cdr.markForCheck();
   }
 
   get completedCount(): number { return this.tasks.filter(t => t.isCompleted).length; }
-  get activeCount(): number { return this.tasks.filter(t => !t.isCompleted).length; }
+  get activeCount():    number { return this.tasks.filter(t => !t.isCompleted).length; }
+  get overdueCount():   number { return this.tasks.filter(t => this.isOverdue(t)).length; }
 
   trackById(_: number, task: Task): number { return task.id; }
 
   isOverdue(task: Task): boolean {
     if (!task.dueDate || task.isCompleted) return false;
-    return new Date(task.dueDate) < new Date();
+    return new Date(task.dueDate) < new Date(new Date().toDateString());
+  }
+
+  isDueSoon(task: Task): boolean {
+    if (!task.dueDate || task.isCompleted) return false;
+    const days = (new Date(task.dueDate).getTime() - Date.now()) / 86400000;
+    return days >= 0 && days <= 2;
   }
 
   getUser(id: string | undefined): User | undefined {
@@ -92,23 +136,21 @@ export class TaskListComponent implements OnInit {
     sky:     'bg-sky-500',
   };
 
-  priorityBadgeClass(priority: string): string {
-    const base = 'text-xs font-medium px-2 py-0.5 rounded-full border ';
-    const map: Record<string, string> = {
-      High:   'bg-rose-500/10 text-rose-400 border-rose-500/20',
-      Medium: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-      Low:    'bg-sky-500/10 text-sky-400 border-sky-500/20',
-    };
-    return base + (map[priority] ?? 'bg-gray-500/10 text-gray-400 border-gray-500/20');
-  }
+  readonly avatarBgLight: Record<string, string> = {
+    cyan:    'bg-cyan-100 text-cyan-700',
+    emerald: 'bg-emerald-100 text-emerald-700',
+    amber:   'bg-amber-100 text-amber-700',
+    rose:    'bg-rose-100 text-rose-700',
+    sky:     'bg-sky-100 text-sky-700',
+  };
 
-  priorityLeftBorderClass(priority: string): string {
-    const map: Record<string, string> = {
-      High:   'border-l-rose-500',
-      Medium: 'border-l-amber-500',
-      Low:    'border-l-sky-500',
+  priorityConfig(priority: string): { badge: string; dot: string } {
+    const map: Record<string, { badge: string; dot: string }> = {
+      High:   { badge: 'bg-red-50 text-red-600 border border-red-200',      dot: 'bg-red-500' },
+      Medium: { badge: 'bg-amber-50 text-amber-600 border border-amber-200', dot: 'bg-amber-500' },
+      Low:    { badge: 'bg-emerald-50 text-emerald-600 border border-emerald-200', dot: 'bg-emerald-500' },
     };
-    return map[priority] ?? 'border-l-gray-700';
+    return map[priority] ?? { badge: 'bg-slate-100 text-slate-500 border border-slate-200', dot: 'bg-slate-400' };
   }
 
   openCreate(): void { this.editingTask = null; this.showForm = true; }
@@ -134,5 +176,31 @@ export class TaskListComponent implements OnInit {
       next: () => { this.tasks = this.tasks.filter(t => t.id !== id); this.applyFilters(); this.cdr.markForCheck(); },
       error: () => { this.error = 'Failed to delete task.'; this.cdr.markForCheck(); },
     });
+  }
+
+  exportToCSV(): void {
+    const headers = ['Title', 'Description', 'Priority', 'Status', 'Assignee', 'Tags', 'Due Date', 'Created'];
+    const rows = this.filteredTasks.map(t => [
+      t.title,
+      t.description ?? '',
+      t.priority,
+      t.isCompleted ? 'Done' : 'Active',
+      this.getUser(t.assignedTo)?.name ?? 'Unassigned',
+      (t.tags ?? []).join('; '),
+      t.dueDate ? new Date(t.dueDate).toLocaleDateString() : '',
+      new Date(t.createdAt).toLocaleDateString(),
+    ]);
+    const csv = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `taskflow-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 }
