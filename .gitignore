@@ -1,0 +1,28 @@
+# ===== .NET =====
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.db
+*.db-shm
+*.db-wal
+
+# ===== Node / Angular =====
+node_modules/
+dist/
+.angular/
+
+# ===== Env / Secrets =====
+.env
+.env.*
+appsettings.Development.json
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Test artifacts =====
+validate_api*.ps1
+ui-initial.png
+.playwright-mcp/
