@@ -143,3 +143,11 @@ D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManage
 D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\obj\Debug\net10.0\TaskManagement.API.pdb
 D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\obj\Debug\net10.0\TaskManagement.API.genruntimeconfig.cache
 D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\obj\Debug\net10.0\ref\TaskManagement.API.dll
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\obj\Debug\net10.0\TaskManagement.API.MvcApplicationPartsAssemblyInfo.cs
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\obj\Debug\net10.0\TaskManagement.API.sourcelink.json
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\bin\Debug\net10.0\Microsoft.OpenApi.dll
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\obj\Debug\net10.0\TaskManagement.API.xml
+D:\OneDrive - Yash Technologies Pvt Ltd\Claude_Code\TM\TaskManagement\TaskManagement.API\bin\Debug\net10.0\TaskManagement.API.xml
